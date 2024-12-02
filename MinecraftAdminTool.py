@@ -33,7 +33,12 @@ class MinecraftAdminTool(tk.Tk):
                                                command=self.browse_yaml_files)
         self.browse_formats_button.pack(pady=10)
 
-        self.yaml_file_path = "/home/wiktor/servers/1.21/plugins/LPC-Pro/config.yml"
+        # Automatically resolve paths
+        user_home = os.path.expanduser("~")
+        self.base_path = os.path.join(user_home, "servers", "1.21", "plugins", "LPC-Pro")
+        self.yaml_file_path = os.path.join(self.base_path, "config.yml")
+        self.db_file_path = os.path.join(self.base_path, "data.db")
+        self.formats_dir = os.path.join(self.base_path, "formats")
 
     def toggle_content_analyzer(self):
         self.update_yaml("content_analyzer", self.content_analyzer_var.get())
@@ -61,7 +66,7 @@ class MinecraftAdminTool(tk.Tk):
         db_window.geometry("600x400")
 
         try:
-            connection = sqlite3.connect("/home/wiktor/servers/1.21/plugins/LPC-Pro/data.db")
+            connection = sqlite3.connect(self.db_file_path)
             cursor = connection.cursor()
             cursor.execute("SELECT * FROM messages")
             rows = cursor.fetchall()
@@ -76,8 +81,7 @@ class MinecraftAdminTool(tk.Tk):
             messagebox.showerror("Error", f"Failed to load database: {str(e)}")
 
     def browse_yaml_files(self):
-        default_directory = os.path.join("/home/wiktor/servers/1.21/plugins/LPC-Pro/", "formats")
-        directory = filedialog.askdirectory(title="Select /formats Directory", initialdir=default_directory)
+        directory = filedialog.askdirectory(title="Select /formats Directory", initialdir=self.formats_dir)
         if directory:
             yaml_files = [f for f in os.listdir(directory) if f.endswith('.yml') or f.endswith('.yaml')]
             if not yaml_files:
